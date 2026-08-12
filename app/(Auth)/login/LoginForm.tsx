@@ -13,11 +13,18 @@ import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/comp
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "@/components/ui/toast";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { setUser } from "@/lib/store/slices/authSlice";
 import { requestOtp, verifyOtp } from "@/services/auth.service";
 import { getCurrentUser } from "@/services/user.service";
 import { useEffect, useState } from "react";
 
-export default function LoginForm() {
+type LoginFormProps = {
+    onNewUser: () => void
+}
+
+export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
+    const dispatch = useAppDispatch()
     const [email, setEmail] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [showOtpBoxes, setShowOtpBoxes] = useState(false)
@@ -26,6 +33,13 @@ export default function LoginForm() {
     const showOtp = () => {
         setShowOtpBoxes(true)
     }
+
+    useEffect(() => {
+        const currentUser = async() => {
+            await getCurrentUser()
+        }
+        currentUser()
+    },[])
 
     const handleEmailchange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
@@ -43,16 +57,18 @@ export default function LoginForm() {
                     showOtp()
                 }
             } else {
-                await verifyOtp(email, otpValue)
+                const response = await verifyOtp(email, otpValue)
+                if(response.is_new_user){
+                    onNewUser()
+                }
                 toast.add({type: "success", description: "OTP verified successfully"})
+                const user = await getCurrentUser()
+                dispatch(setUser(user))
             }
-            await getCurrentUser()
         } catch (error) {
             toast.add({ type: "warning", description: "Something went wrong" })
         } finally {
             setIsLoading(false)
-            setEmail("")
-            setOtpValue("")
         }
     }
 

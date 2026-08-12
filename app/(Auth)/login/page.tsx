@@ -1,5 +1,5 @@
-import LoginForm from "./LoginForm";
+import { LoginFlow } from "./LoginFLow";
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return <LoginFlow />;
 }
