@@ -50,7 +50,7 @@ export const OnboardingBanner = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => router.push("/onboarding")}
-                    className="w-full sm:w-auto bg-amber-600 border-amber-600 text-white hover:bg-amber-700 hover:text-white shadow-sm font-semibold transition-colors duration-200"
+                    className="w-full sm:w-auto bg-amber-600 border-amber-600 text-white hover:bg-amber-700 hover:text-white shadow-sm font-semibold transition-colors duration-200 cursor-pointer"
                 >
                     Complete Now
                     <ArrowRight className="ml-1.5 h-4 w-4" />

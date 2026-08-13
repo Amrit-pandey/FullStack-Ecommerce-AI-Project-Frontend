@@ -14,6 +14,10 @@ import { Spinner } from "@/components/ui/spinner";
 
 type Step = "login" | "onboarding" | "completed";
 
+type LoginFlowProps = {
+    initialStep?: Step
+}
+
 const MotionCard = motion(Card)
 const fadeVariants: Variants = {
     initial: { opacity: 0, x: 30 },
@@ -21,11 +25,11 @@ const fadeVariants: Variants = {
     exit: { opacity: 0, x: -30, transition: { duration: 0.2, ease: "easeIn" } }
 }
 
-export const LoginFlow = () => {
+export const LoginFlow = ({ initialStep = "login" }: LoginFlowProps) => {
     const dispatch = useAppDispatch()
     const { isAuthenticated, isInitialized, user, isLoading } = useAppSelector((state) => state.auth)
     const router = useRouter()
-    const [step, setStep] = useState<Step>("login")
+    const [step, setStep] = useState<Step>(initialStep)
     console.log(step, "step")
 
     const stepContent = {
