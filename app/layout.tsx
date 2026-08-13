@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Toaster } from "@/components/ui/toast";
 import { StoreProvider } from "@/lib/store/provider";
+import { AuthInitializer } from "./_components/auth/AuthInitializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-screen flex flex-col">
         <StoreProvider>
-          <Header />
-          {children}
-          <Toaster />
+          <AuthInitializer>
+            <Header />
+            {children}
+            <Toaster />
+          </AuthInitializer>
         </StoreProvider>
       </body>
     </html>

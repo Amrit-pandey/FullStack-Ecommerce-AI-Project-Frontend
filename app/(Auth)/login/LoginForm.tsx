@@ -17,6 +17,7 @@ import { useAppDispatch } from "@/lib/store/hooks";
 import { setUser } from "@/lib/store/slices/authSlice";
 import { requestOtp, verifyOtp } from "@/services/auth.service";
 import { getCurrentUser } from "@/services/user.service";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type LoginFormProps = {
@@ -25,6 +26,7 @@ type LoginFormProps = {
 
 export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
     const dispatch = useAppDispatch()
+    const router = useRouter()
     const [email, setEmail] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [showOtpBoxes, setShowOtpBoxes] = useState(false)
@@ -56,15 +58,19 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
                     toast.add({ type: "success", description: response.message })
                     showOtp()
                 }
-            } else {
-                const response = await verifyOtp(email, otpValue)
-                if(response.is_new_user){
-                    onNewUser()
-                }
-                toast.add({type: "success", description: "OTP verified successfully"})
-                const user = await getCurrentUser()
-                dispatch(setUser(user))
+                return;
             }
+            const response = await verifyOtp(email, otpValue)
+            toast.add({type: "success", description: "OTP verified successfully"})
+            // new user onboarding process
+            if(response.is_new_user && !response.user.onboarding_status){
+                dispatch(setUser(response.user))
+                onNewUser()
+                return;
+            }
+            // existing user direct naviagte to "/"
+            dispatch(setUser(response.user))
+            router.push('/')
         } catch (error) {
             toast.add({ type: "warning", description: "Something went wrong" })
         } finally {
@@ -73,74 +79,58 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
     }
 
     return (
-        <main className="flex flex-1 items-center justify-center px-4 py-12">
-            <Card className="w-full max-w-md shadow-lg">
-                <CardHeader className="space-y-2 text-center">
-                    <CardTitle className="text-2xl font-semibold">
-                        Welcome to ShopOnBot.ai
-                    </CardTitle>
+        <form className="space-y-5 px-4 my-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
 
-                    <CardDescription>
-                        Enter your email to continue
-                    </CardDescription>
-                </CardHeader>
+                <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={email}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    onChange={handleEmailchange}
+                />
+            </div>
 
-                <CardContent>
-                    <form className="space-y-5" onSubmit={handleSubmit}>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+            {showOtpBoxes &&
+                <div className="space-y-2">
+                    <Label htmlFor="otp">Verify Otp</Label>
 
-                            <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                value={email}
-                                placeholder="you@example.com"
-                                autoComplete="email"
-                                onChange={handleEmailchange}
-                            />
-                        </div>
-
-                        {showOtpBoxes &&
-                            <div className="space-y-2">
-                                <Label htmlFor="otp">Verify Otp</Label>
-
-                                <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={0} />
-                                        <InputOTPSlot index={1} />
-                                    </InputOTPGroup>
-                                    <InputOTPSeparator />
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={2} />
-                                        <InputOTPSlot index={3} />
-                                    </InputOTPGroup>
-                                    <InputOTPSeparator />
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={4} />
-                                        <InputOTPSlot index={5} />
-                                    </InputOTPGroup>
-                                </InputOTP>
-                            </div>
-                        }
-                        <div className="">
-                            <span>Didn't recieve otp -</span>
-                            <Button variant="link" size="xs" className="font-bold cursor-pointer">
-                                Resend Code
-                            </Button>
-                        </div>
-                        <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
-                            {isLoading ?
-                                <span className="flex items-center gap-2">
-                                    <Spinner />
-                                    Sending...
-                                </span> :
-                                showOtpBoxes ? "Verify Otp" : "Send OTP"
-                            }
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
-        </main>
+                    <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
+                        <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                        </InputOTPGroup>
+                        <InputOTPSeparator />
+                        <InputOTPGroup>
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                        </InputOTPGroup>
+                        <InputOTPSeparator />
+                        <InputOTPGroup>
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                    </InputOTP>
+                </div>
+            }
+            <div className="">
+                <span>Didn't recieve otp -</span>
+                <Button variant="link" size="xs" className="font-bold cursor-pointer">
+                    Resend Code
+                </Button>
+            </div>
+            <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
+                {isLoading ?
+                    <span className="flex items-center gap-2">
+                        <Spinner />
+                        Sending...
+                    </span> :
+                    showOtpBoxes ? "Verify Otp" : "Send OTP"
+                }
+            </Button>
+        </form>
     );
 }

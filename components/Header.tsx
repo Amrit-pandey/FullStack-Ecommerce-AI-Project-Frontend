@@ -64,7 +64,7 @@ export const Header = () => {
                     <span className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                     {user?.full_name?.charAt(0).toUpperCase() ?? (
                         <Avatar>
-                            <AvatarImage src={user?.image_url} alt="profile" />
+                            <AvatarImage src={user?.image_url ?? "https://github.com/shadcn.png"} alt="profile" />
                             <AvatarFallback>CN</AvatarFallback>
                             <AvatarBadge className="bg-green-600 dark:bg-green-800" />
                         </Avatar>
