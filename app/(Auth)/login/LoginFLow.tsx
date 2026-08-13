@@ -1,15 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { LoginForm } from "./LoginForm"
 import { Onboarding } from "./Onboarding"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { getCurrentUser } from "@/services/user.service";
-import { useAppDispatch } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { setUser } from "@/lib/store/slices/authSlice";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 type Step = "login" | "onboarding" | "completed";
 
@@ -22,6 +23,7 @@ const fadeVariants: Variants = {
 
 export const LoginFlow = () => {
     const dispatch = useAppDispatch()
+    const { isAuthenticated, isInitialized, user, isLoading } = useAppSelector((state) => state.auth)
     const router = useRouter()
     const [step, setStep] = useState<Step>("login")
     console.log(step, "step")
@@ -41,10 +43,29 @@ export const LoginFlow = () => {
         },
     };
 
+    useEffect(() => {
+        if(step === "onboarding"){
+            return;
+        }
+        if(isAuthenticated && isInitialized && user){
+            router.push("/")
+        }
+    }, [isAuthenticated, isInitialized, user])
+
     const handleClick = async() => {
         const user = await getCurrentUser()
         dispatch(setUser(user))
         router.push("/")
+    }
+
+    if (!isInitialized || isLoading) {
+        return (
+            <main className="flex flex-1 items-center justify-center px-4 py-12 min-h-[50vh]">
+                <div className="flex flex-col items-center gap-2">
+                     <Spinner />
+                </div>
+            </main>
+        );
     }
     
 

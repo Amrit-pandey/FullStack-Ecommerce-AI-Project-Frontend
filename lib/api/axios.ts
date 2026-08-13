@@ -9,7 +9,7 @@ let isRefreshing = false
 let refreshPromise: Promise<void> | null = null
 
 const refreshAccessToken = async() => {
-    await axios.post("api/v1/auth/refresh", {}, {withCredentials: true})
+    await axios.post("/api/v1/auth/refresh", {}, {withCredentials: true})
 }
 apiClient.interceptors.response.use(
     (response) => {

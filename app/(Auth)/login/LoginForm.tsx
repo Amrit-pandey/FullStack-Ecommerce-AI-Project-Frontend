@@ -36,13 +36,6 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
         setShowOtpBoxes(true)
     }
 
-    useEffect(() => {
-        const currentUser = async() => {
-            await getCurrentUser()
-        }
-        currentUser()
-    },[])
-
     const handleEmailchange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
         setEmail(value)
@@ -62,14 +55,13 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
             }
             const response = await verifyOtp(email, otpValue)
             toast.add({type: "success", description: "OTP verified successfully"})
+            dispatch(setUser(response.user))
             // new user onboarding process
-            if(response.is_new_user && !response.user.onboarding_status){
-                dispatch(setUser(response.user))
+            if(!response.user.onboarding_status && response.is_new_user){
                 onNewUser()
                 return;
             }
             // existing user direct naviagte to "/"
-            dispatch(setUser(response.user))
             router.push('/')
         } catch (error) {
             toast.add({ type: "warning", description: "Something went wrong" })

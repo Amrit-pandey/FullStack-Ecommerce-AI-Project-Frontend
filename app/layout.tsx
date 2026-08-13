@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Toaster } from "@/components/ui/toast";
 import { StoreProvider } from "@/lib/store/provider";
 import { AuthInitializer } from "./_components/auth/AuthInitializer";
+import { OnboardingBanner } from "@/components/OnboardingBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <StoreProvider>
           <AuthInitializer>
             <Header />
+            <OnboardingBanner />
             {children}
             <Toaster />
           </AuthInitializer>
