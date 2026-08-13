@@ -4,17 +4,36 @@ import { AlertCircle, ArrowRight } from "lucide-react"
 import { Button } from "./ui/button"
 import { usePathname, useRouter } from "next/navigation"
 import { useAppSelector } from "@/lib/store/hooks"
+import { Skeleton } from "./ui/skeleton"
 
 export const OnboardingBanner = () => {
     const router = useRouter()
     const pathname = usePathname()
-    const { user, isAuthenticated, isInitialized } = useAppSelector((state) => state.auth)
+    const { user, isAuthenticated, isInitialized, isLoading } = useAppSelector((state) => state.auth)
+
     if (pathname === "/login" || pathname === "/onboarding") {
-      return null;
+        return null;
     }
-    if (!isInitialized || !isAuthenticated || !user || user.onboarding_status) {
+    
+    if(!isInitialized || isLoading){
+        return (
+            <div className="w-full bg-amber-50/50 border-b border-amber-100 px-4 py-3 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-3 w-full max-w-xl">
+                    <Skeleton className="h-5 w-5 rounded-full bg-amber-200/60 shrink-0" />
+                    <Skeleton className="h-4 w-full bg-amber-200/40 rounded" />
+                </div>
+                <Skeleton className="h-9 w-28 bg-amber-200/50 rounded-md shrink-0 self-end sm:self-auto" />
+                </div>
+            </div>
+        );
+    }
+
+    if (!isAuthenticated || !user || user.onboarding_status) {
       return null; 
     }
+
+
     return (
         <div className="w-full bg-amber-50 border-b border-amber-200 px-4 py-3 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
