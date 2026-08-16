@@ -52,9 +52,13 @@ export const LoginFlow = ({ initialStep = "login" }: LoginFlowProps) => {
             return;
         }
         if(isAuthenticated && isInitialized && user){
+            if(user.role === "admin"){
+               router.push("/admin")
+               return;
+            }
             router.push("/")
         }
-    }, [isAuthenticated, isInitialized, user])
+    }, [isAuthenticated, isInitialized, user, user?.role])
 
     const handleClick = async() => {
         const user = await getCurrentUser()

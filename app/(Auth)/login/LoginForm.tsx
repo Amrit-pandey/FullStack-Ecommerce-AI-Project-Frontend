@@ -42,6 +42,7 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
     }
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        console.log("handle submit called")
         e.preventDefault()
         try {
             setIsLoading(true)
@@ -57,11 +58,15 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
             toast.add({type: "success", description: "OTP verified successfully"})
             dispatch(setUser(response.user))
             // new user onboarding process
-            if(!response.user.onboarding_status && response.is_new_user){
+            if(!response.user.onboarding_status && response.is_new_user && response.user.role){
                 onNewUser()
                 return;
             }
             // existing user direct naviagte to "/"
+            if(response?.user?.role === "admin"){
+                router.push('/admin')
+                return;
+            }
             router.push('/')
         } catch (error) {
             toast.add({ type: "warning", description: "Something went wrong" })
