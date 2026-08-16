@@ -42,7 +42,6 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
     }
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-        console.log("handle submit called")
         e.preventDefault()
         try {
             setIsLoading(true)

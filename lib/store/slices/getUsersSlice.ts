@@ -1,5 +1,5 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { User } from "./authSlice";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { User } from "@/types/user";
 
 interface UserState {
     users: User[],
@@ -17,7 +17,7 @@ export const getUsersSlice = createSlice({
     name: "users",
     initialState: initialState,
     reducers: {
-        setUsers(state, action) {
+        setUsers(state, action: PayloadAction<User[]>) {
             state.users = action.payload
             state.isLoading = false
             state.error = null

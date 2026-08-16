@@ -13,7 +13,7 @@ const UsersTable = () => {
     useEffect(() => {
         const getAllUsers = async() => {
           const response = await getUsers()
-          dispatch(setUsers(response))
+          dispatch(setUsers(response.users))
         }
         getAllUsers()
     }, [])
@@ -32,7 +32,7 @@ const UsersTable = () => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {users && users?.map((user:any) => (
+                    {users.map((user) => (
                         <TableRow key={user.id}>
                             <TableCell>{user.id}</TableCell>
                             <TableCell className="font-medium">{user.full_name}</TableCell>
