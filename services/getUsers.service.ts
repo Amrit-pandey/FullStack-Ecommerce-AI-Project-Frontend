@@ -1,10 +1,13 @@
 import { apiClient } from "@/lib/api/axios"
-import { User } from "@/types/user"
-interface GetUsersResponse {
-    users: User[]
-}
+import { UserResponsePayload } from "@/types/user"
 
-export const getUsers = async(): Promise<GetUsersResponse> => {
-    const response = await apiClient.get<GetUsersResponse>("/admin/users")
+export const getUsers = async(page: number, limit: number, search?: string ): Promise<UserResponsePayload> => {
+    const response = await apiClient.get<UserResponsePayload>("/admin/users", {
+        params: {
+            page,
+            limit,
+            ...(search ? { search } : {})
+        }
+    })
     return response.data
 }
