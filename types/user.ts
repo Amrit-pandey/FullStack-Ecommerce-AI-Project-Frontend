@@ -15,3 +15,8 @@ export interface UserResponsePayload {
     limit: number,
     total_count: number
 }
+
+export interface UserActionResponse {
+    message: string;
+    user: User;
+}

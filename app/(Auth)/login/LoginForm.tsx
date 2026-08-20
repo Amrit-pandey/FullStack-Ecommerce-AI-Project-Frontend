@@ -41,6 +41,15 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
         setEmail(value)
     }
 
+    const handleResendOtp = async() => {
+        try {
+            const response = await verifyOtp(email, otpValue)
+            toast.add({ type: "success", description: "Otp sent to you email" })
+        } catch (error) {
+            toast.add({ type: "warning", description: "failed to send Otp"})
+        }
+    }
+
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
         try {
@@ -114,8 +123,8 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
             }
             <div className="">
                 <span>Didn't recieve otp -</span>
-                <Button variant="link" size="xs" className="font-bold cursor-pointer">
-                    Resend Code
+                <Button variant="link" size="xs" className="font-bold cursor-pointer" onClick={handleResendOtp}>
+                    Resend Otp
                 </Button>
             </div>
             <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
