@@ -16,7 +16,6 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
     const [profileFile, setProfileFile] = useState<File | null>(null)
     const [profilePreview, setProfilePreview] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    console.log(profilePreview, "profile")
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const handleOnchange = (e: React.ChangeEvent<HTMLInputElement>) => {
