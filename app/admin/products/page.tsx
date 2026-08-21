@@ -68,20 +68,21 @@ const Products = () => {
                     stock_quantity: form.stock_quantity
                 })
                 toast.add({ type: "success", description: updateData.message})
-                return;
+                closeDialog()
+            } else {
+                const data = await addProduct({
+                    title: form.title,
+                    description: form.description,
+                    image_url,
+                    price: form.price,
+                    in_stock: form.in_stock,
+                    stock_quantity: form.stock_quantity
+                })
+                toast.add({ type: "success", description: data.message })
+                closeDialog()
             }
-            const data = await addProduct({
-                title: form.title,
-                description: form.description,
-                image_url,
-                price: form.price,
-                in_stock: form.in_stock,
-                stock_quantity: form.stock_quantity
-            })
             const productsResponse = await getAdminProducts()
             dispatch(setProducts(productsResponse))
-            toast.add({ type: "success", description: data.message })
-            closeDialog()
         } catch (error) {
             toast.add({
                 type: "warning", description: actionType === "Edit-product"
