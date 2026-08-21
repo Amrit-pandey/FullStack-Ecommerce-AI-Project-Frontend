@@ -43,7 +43,7 @@ export const LoginForm = ({ onNewUser }: LoginFormProps ) => {
 
     const handleResendOtp = async() => {
         try {
-            const response = await verifyOtp(email, otpValue)
+            const response = await requestOtp(email)
             toast.add({ type: "success", description: "Otp sent to you email" })
         } catch (error) {
             toast.add({ type: "warning", description: "failed to send Otp"})

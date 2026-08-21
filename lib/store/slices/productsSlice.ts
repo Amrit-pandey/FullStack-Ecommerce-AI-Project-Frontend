@@ -28,9 +28,17 @@ const productsSlice = createSlice({
         setErrors(state, action: PayloadAction<string>) {
             state.isLoading = false;
             state.error = action.payload;
+        },
+        clearProducts(state) {
+            state.products = []
+            state.isLoading = false
+            state.error = null
+        },
+        removeProduct(state, action) {
+            state.products = state.products.filter((item) => item.id !== action.payload)
         }
     }
 })
 
-export const { setErrors, setProducts, setProductsLoading } = productsSlice.actions
+export const { setErrors, setProducts, setProductsLoading, clearProducts, removeProduct } = productsSlice.actions
 export default productsSlice.reducer

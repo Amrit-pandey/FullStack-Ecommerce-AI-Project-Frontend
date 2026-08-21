@@ -13,7 +13,7 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { useDialog } from "@/hooks/useModal"
 import { usePagination } from "@/hooks/usePagination"
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks"
-import { fetchUsers, setErrors, setUsers } from "@/lib/store/slices/getUsersSlice"
+import { fetchUsers, setErrors, setUsers } from "@/lib/store/slices/usersSlice"
 import { activateUser, deactivateUser, getUsers } from "@/services/admin.service"
 import { useEffect, useState } from "react"
 

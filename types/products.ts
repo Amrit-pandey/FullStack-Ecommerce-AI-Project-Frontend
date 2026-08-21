@@ -37,6 +37,11 @@ export interface UpdatedProductResponse {
     product: Product
 }
 
+export interface DeleteProductResponse {
+    message: string;
+    product_id: number
+}
+
 export interface ProductImageResponse {
     message: string
     image_url: string

@@ -6,7 +6,7 @@ export default function AdminLayout({children}: LayoutProps<"/admin">) {
         <SidebarProvider>
             <AdminSidebar />
             <SidebarInset>
-                {children}
+            {children}
             </SidebarInset>
         </SidebarProvider>
     )

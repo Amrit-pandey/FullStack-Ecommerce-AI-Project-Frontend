@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import { logout } from "@/services/auth.service";
 import { toast } from "@/components/ui/toast";
 import { clearUser } from "@/lib/store/slices/authSlice";
+import { clearUsers } from "@/lib/store/slices/usersSlice";
+import { clearProducts } from "@/lib/store/slices/productsSlice";
 
 export const Header = () => {
     const router = useRouter()
@@ -19,11 +21,18 @@ export const Header = () => {
     const { user, isAuthenticated, isInitialized, isLoading } = useAppSelector((state) => state.auth)
 
     const handleLogout = async() => {
-        const response = await logout()
-        if(response.message){
-            toast.add({type: "success", description: response.message})
+        try {
+            const response = await logout()
+            if(response.message){
+                toast.add({type: "success", description: response.message})
+            }
+            dispatch(clearUser())
+            dispatch(clearUsers())
+            dispatch(clearProducts())
+            router.push("/login")
+        } catch (error) {
+            console.log(error, "logout error")
         }
-        dispatch(clearUser(response))
     }
 
     return (

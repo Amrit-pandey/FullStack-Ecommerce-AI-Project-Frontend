@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "shoponbot.s3.amazonaws.com",
+            },
+        ],
+    },
   async rewrites() {
     return [
       {
