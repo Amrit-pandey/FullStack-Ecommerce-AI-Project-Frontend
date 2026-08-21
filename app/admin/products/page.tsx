@@ -8,17 +8,19 @@ import { Field, FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 import { useDialog } from '@/hooks/useModal'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
-import { setProducts } from '@/lib/store/slices/productsSlice'
-import { addProduct, getAdminProducts, productImage } from '@/services/admin.service'
+import { setErrors, setProducts, setProductsLoading } from '@/lib/store/slices/productsSlice'
+import { addProduct, getAdminProducts, productImage, updateProduct } from '@/services/admin.service'
 import { Edit2, Eye, Package, Trash2 } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 const Products = () => {
     const dispatch = useAppDispatch()
     const { products, isLoading, error } = useAppSelector((state) => state.products)
+    console.log(products, "products..")
     const [form, setForm] = useState({
         title: "",
         description: "",
@@ -29,7 +31,7 @@ const Products = () => {
     })
     const [imagePrivew, setImagePreview] = useState("")
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
-    const { isOpen, setIsOpen, actionType, setIsActionLoading, isActionLoading, closeDialog, openDialog } = useDialog()
+    const { isOpen, setIsOpen, actionType, setIsActionLoading, isActionLoading, closeDialog, openDialog, selectedProduct, setSelectedProduct } = useDialog()
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -46,15 +48,28 @@ const Products = () => {
         setImagePreview(URL.createObjectURL(file))
     }
 
-    const handleAddProdcut = async(e: React.FormEvent<HTMLFormElement>) => {
+    const handleAddProdcut = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         try {
-             setIsActionLoading(true)
-             let image_url: string | null = null
-             if(selectedFile){
+            setIsActionLoading(true)
+            let image_url: string | null = null
+            if (selectedFile) {
                 const imageResponse = await productImage(selectedFile)
                 image_url = imageResponse?.image_url ?? null
-             }
+            }
+            if (actionType === "Edit-product") {
+                if (!selectedProduct) return;
+                const updateData = await updateProduct(selectedProduct?.id, {
+                    title: form.title,
+                    description: form.description,
+                    image_url,
+                    price: form.price,
+                    in_stock: form.in_stock,
+                    stock_quantity: form.stock_quantity
+                })
+                toast.add({ type: "success", description: updateData.message})
+                return;
+            }
             const data = await addProduct({
                 title: form.title,
                 description: form.description,
@@ -65,66 +80,134 @@ const Products = () => {
             })
             const productsResponse = await getAdminProducts()
             dispatch(setProducts(productsResponse))
-            toast.add({type: "success", description: data.message})
+            toast.add({ type: "success", description: data.message })
             closeDialog()
         } catch (error) {
-            toast.add({type: "warning", description: "Failed to add product"})
+            toast.add({
+                type: "warning", description: actionType === "Edit-product"
+                    ? "Failed to update product"
+                    : "Failed to add product"
+            })
             console.log(error)
-        }finally {
+        } finally {
             setIsActionLoading(false)
         }
     }
-    
+
+    useEffect(() => {
+        const loadProducts = async () => {
+            dispatch(setProductsLoading())
+            try {
+                const response = await getAdminProducts()
+                dispatch(setProducts(response))
+            } catch (error) {
+                console.error(error)
+                dispatch(setErrors("Failed to fetch products"))
+            }
+        }
+        loadProducts()
+    }, [dispatch])
+
+    useEffect(() => {
+        if (!selectedProduct) return;
+
+        setForm({
+            title: selectedProduct.title,
+            description: selectedProduct.description ?? "",
+            image_url: selectedProduct.image_url ?? "",
+            price: selectedProduct.price,
+            in_stock: selectedProduct.in_stock,
+            stock_quantity: selectedProduct.stock_quantity
+        })
+    }, [selectedProduct])
+
+
+
     return (
         <div className='p-6 space-y-8'>
             <div className='flex item-center justify-between'>
-                <Input 
-                className='w-[50%]'
-                placeholder='Search Products...'
+                <Input
+                    className='w-[50%]'
+                    placeholder='Search Products...'
                 />
                 <Button className="cursor-pointer" onClick={() => openDialog(null, "Add-product")}>Add Product</Button>
             </div>
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
-                {products.map((product) => (
-                    <Card
-                        key={product.id} 
-                        className='group overflow-hidden flex flex-col justify-between min-h-[320px] transition-all hover:shadow-md'
-                    >
-                        <CardHeader className='p-4 pb-0 relative'>
-                            {/* Image Placeholder */}
-                            <div className='aspect-video w-full rounded-lg bg-muted flex items-center justify-center text-muted-foreground relative overflow-hidden mb-2'>
-                                <Package className='h-8 w-8 stroke-1 transition-transform group-hover:scale-110' />
-                                <span className={`absolute top-2 right-2 text-xs font-medium px-2 py-0.5 rounded-full ${
-                                    product.in_stock ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-destructive/10 text-destructive'
-                                }`}>
-                                    {product.in_stock ? 'In Stock' : 'Out of Stock'}
-                                </span>
-                            </div>
-                            {/* <span className='text-xs font-medium text-muted-foreground uppercase tracking-wider'>{product.category}</span> */}
-                            <CardTitle className='font-semibold text-base tracking-tight leading-tight line-clamp-1 mt-1'>
-                                {product.title}
-                            </CardTitle>
-                        </CardHeader>
-                        
-                        <CardContent className='p-4 pt-1 flex-1'>
-                            <p className='text-lg font-bold tracking-tight text-primary'>{product.price}</p>
-                        </CardContent>
+            {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {Array.from({ length: 8 }).map((_, index) => (
+                        <Card
+                            key={index}
+                            className="overflow-hidden flex flex-col justify-between min-h-[320px]"
+                        >
+                            <CardHeader className="p-4 pb-0">
+                                <Skeleton className="aspect-video w-full rounded-lg" />
 
-                        {/* Hover Quick Actions inside CardFooter */}
-                        <CardFooter className='p-4 pt-3 border-t bg-muted/20 flex items-center gap-2'>
-                            <Button variant='outline' size='icon' className='h-8 w-8 cursor-pointer'>
-                                <Eye className='h-4 w-4 text-muted-foreground' />
-                            </Button>
-                            <Button variant='outline' size='icon' className='h-8 w-8 cursor-pointer'>
-                                <Edit2 className='h-4 w-4 text-muted-foreground' />
-                            </Button>
-                            <Button variant='outline' size='icon' className='h-8 w-8 cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 ml-auto'>
-                                <Trash2 className='h-4 w-4' />
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
-            </div>
+                                <Skeleton className="h-5 w-3/4 mt-3" />
+                            </CardHeader>
+
+                            <CardContent className="p-4 pt-3">
+                                <Skeleton className="h-6 w-24" />
+                            </CardContent>
+
+                            <CardFooter className="p-4 pt-3 border-t bg-muted/20 flex items-center gap-2">
+                                <Skeleton className="h-8 w-8 rounded-md" />
+                                <Skeleton className="h-8 w-8 rounded-md" />
+                                <Skeleton className="h-8 w-8 rounded-md ml-auto" />
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            ) : products.length === 0 ? (
+                <p className='flex item-center justify-center min-h-screen font-semibold text-2xl'>No products found...!</p>
+            ) : (
+                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
+                    {products.map((product) => (
+                        <Card
+                            key={product.id}
+                            className='group overflow-hidden flex flex-col justify-between min-h-[320px] transition-all hover:shadow-md'
+                        >
+                            <CardHeader className='p-4 pb-0 relative'>
+                                {/* Image Placeholder */}
+                                <div className='aspect-video w-full rounded-lg bg-muted flex items-center justify-center text-muted-foreground relative overflow-hidden mb-2'>
+                                    <Package className='h-8 w-8 stroke-1 transition-transform group-hover:scale-110' />
+                                    <span className={`absolute top-2 right-2 text-xs font-medium px-2 py-0.5 rounded-full ${product.in_stock ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-destructive/10 text-destructive'
+                                        }`}>
+                                        {product.in_stock ? 'In Stock' : 'Out of Stock'}
+                                    </span>
+                                </div>
+                                {/* <span className='text-xs font-medium text-muted-foreground uppercase tracking-wider'>{product.category}</span> */}
+                                <CardTitle className='font-semibold text-base tracking-tight leading-tight line-clamp-1 mt-1'>
+                                    {product.title}
+                                </CardTitle>
+                            </CardHeader>
+
+                            <CardContent className='p-4 pt-1 flex-1'>
+                                <p className='text-lg font-bold tracking-tight text-primary'>{product.price}</p>
+                            </CardContent>
+
+                            {/* Hover Quick Actions inside CardFooter */}
+                            <CardFooter className='p-4 pt-3 border-t bg-muted/20 flex items-center gap-2'>
+                                <Button variant='outline' size='icon' className='h-8 w-8 cursor-pointer'>
+                                    <Eye className='h-4 w-4 text-muted-foreground' />
+                                </Button>
+                                <Button
+                                    variant='outline'
+                                    size='icon'
+                                    className='h-8 w-8 cursor-pointer'
+                                    onClick={() => {
+                                        openDialog(product.id, "Edit-product", product)
+                                    }}
+                                >
+                                    <Edit2 className='h-4 w-4 text-muted-foreground' />
+                                </Button>
+                                <Button variant='outline' size='icon' className='h-8 w-8 cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 ml-auto'>
+                                    <Trash2 className='h-4 w-4' />
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            )}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="max-w-md rounded-xl bg-background border shadow-xl">
                     <DialogHeader className="space-y-1.5 pb-2">
@@ -136,43 +219,43 @@ const Products = () => {
                         <FieldGroup className='space-y-1'>
                             <Field className="space-y-1.5">
                                 <Label className="text-sm font-medium">Title</Label>
-                                <Input 
-                                  placeholder='Enter title...' 
-                                  type='text'
-                                  name="title"
-                                  value={form.title}
-                                  onChange={handleChange}
+                                <Input
+                                    placeholder='Enter title...'
+                                    type='text'
+                                    name="title"
+                                    value={form.title}
+                                    onChange={handleChange}
                                 />
                             </Field>
                             <Field className="space-y-1.5">
                                 <Label className="text-sm font-medium">Description</Label>
-                                <Input 
-                                  placeholder='Enter description...' 
-                                  type='text'
-                                  name="description"
-                                  value={form.description}
-                                  onChange={handleChange}
+                                <Input
+                                    placeholder='Enter description...'
+                                    type='text'
+                                    name="description"
+                                    value={form.description}
+                                    onChange={handleChange}
                                 />
                             </Field>
                             <Field className="space-y-1.5">
                                 <Label className="text-sm font-medium">Price</Label>
-                                <Input 
-                                  placeholder='Enter price...' 
-                                  type='number' 
-                                  name="price"
-                                  value={form.price}
-                                  onChange={(e) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        price: Number(e.target.value)
-                                    }))
-                                  }
+                                <Input
+                                    placeholder='Enter price...'
+                                    type='number'
+                                    name="price"
+                                    value={form.price}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            price: Number(e.target.value)
+                                        }))
+                                    }
                                 />
                             </Field>
                             <Field className="space-y-1.5">
                                 <Label className="text-sm font-medium">Image</Label>
-                                <Input 
-                                    type='file' 
+                                <Input
+                                    type='file'
                                     name="image_url"
                                     value={imagePrivew}
                                     onChange={handleImageChange}
@@ -181,14 +264,14 @@ const Products = () => {
                             </Field>
                             {/* add checkbox for in stock field */}
                             <div className="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                                <Checkbox 
-                                  id="in-stock" 
-                                  checked= {form.in_stock}
-                                  onCheckedChange={(checked) => setForm((prev) => ({
-                                    ...prev,
-                                    in_stock: checked === true
-                                  }))}
-                                  className="mt-0.5" 
+                                <Checkbox
+                                    id="in-stock"
+                                    checked={form.in_stock}
+                                    onCheckedChange={(checked) => setForm((prev) => ({
+                                        ...prev,
+                                        in_stock: checked === true
+                                    }))}
+                                    className="mt-0.5"
                                 />
                                 <div className="grid gap-1.5 leading-none">
                                     <Label htmlFor="in-stock" className="text-sm font-medium cursor-pointer">
@@ -202,14 +285,14 @@ const Products = () => {
                             {/* add dropdown for stock quantity field */}
                             <Field className="space-y-1.5">
                                 <Label className="text-sm font-medium">Stock Quantity</Label>
-                                <Select 
-                                  defaultValue="10" 
-                                  value={String(form.stock_quantity)} 
-                                  onValueChange={(value) => setForm((prev) => ({
-                                    ...prev,
-                                    stock_quantity: Number(value)
-                                  }))}
-                                  >
+                                <Select
+                                    defaultValue="10"
+                                    value={String(form.stock_quantity)}
+                                    onValueChange={(value) => setForm((prev) => ({
+                                        ...prev,
+                                        stock_quantity: Number(value)
+                                    }))}
+                                >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select quantity" />
                                     </SelectTrigger>

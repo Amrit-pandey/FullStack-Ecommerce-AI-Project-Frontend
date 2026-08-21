@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api/axios"
 import { UserActionResponse, UserResponsePayload } from "@/types/user"
-import { CreateProductPayload, ProductImageResponse, ProductsResponse } from "@/types/products"
+import { CreateProductPayload, ProductImageResponse, ProductsResponse, UpdatedProductResponse, UpdateProductPayload } from "@/types/products"
 
 const url = {
     getUsers: "/admin/users",
@@ -8,6 +8,7 @@ const url = {
     activateUser: "/admin/user/activate",
     getAdminProducts: "/admin/products",
     addProduct: "/admin/add_product",
+    updateProduct: (id: number) => `/admin/products/${id}`,
     uploadProductImage: "/upload/product-image"
 }
 
@@ -46,6 +47,11 @@ export const addProduct = async(payload: CreateProductPayload) => {
     return response.data
 }
 
+export const updateProduct = async(id: number, payload: UpdateProductPayload): Promise<UpdatedProductResponse> => {
+    const response = await apiClient.patch<UpdatedProductResponse>(url.updateProduct(id), payload)
+    return response.data
+}
+
 export const productImage = async(file: File | null): Promise<ProductImageResponse | null> => {
     if(!file) return null;
     const formData = new FormData()
@@ -55,6 +61,4 @@ export const productImage = async(file: File | null): Promise<ProductImageRespon
 }
 
 // TODO: 
-// 1. add product
-// 2. update product
 // 3. delete product

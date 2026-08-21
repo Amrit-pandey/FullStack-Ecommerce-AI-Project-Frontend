@@ -23,6 +23,20 @@ export interface CreateProductPayload {
     stock_quantity: number;
 }
 
+export interface UpdateProductPayload {
+    title: string;
+    description: string | null;
+    image_url: string | null;
+    price: number;
+    in_stock: boolean;
+    stock_quantity: number;
+}
+
+export interface UpdatedProductResponse {
+    message: string;
+    product: Product
+}
+
 export interface ProductImageResponse {
     message: string
     image_url: string

@@ -16,7 +16,7 @@ const productsSlice = createSlice({
     name: "products",
     initialState,
     reducers: {
-        fetchProducts(state) {
+        setProductsLoading(state) {
             state.isLoading = true;
             state.error = null;
         },
@@ -32,5 +32,5 @@ const productsSlice = createSlice({
     }
 })
 
-export const { setErrors, setProducts, fetchProducts } = productsSlice.actions
+export const { setErrors, setProducts, setProductsLoading } = productsSlice.actions
 export default productsSlice.reducer
